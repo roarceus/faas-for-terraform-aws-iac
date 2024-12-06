@@ -1,0 +1,32 @@
+name: Lambda Function API Check
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  code-check:
+    runs-on: ubuntu-latest
+
+    env:
+      SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+
+    steps:
+      # Checkout the repository
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+
+      # Run a scan for SendGrid API key patterns
+      - name: Scan for Exposed SendGrid API Key
+        run: |
+          # Look for patterns matching SendGrid API key in codebase
+          grep -r "SG\." . || echo "No hardcoded SendGrid API key found."
+          
+          # Check if the SENDGRID_API_KEY is properly set
+          if [[ -z "$SENDGRID_API_KEY" ]]; then
+            echo "Error: SENDGRID_API_KEY environment variable is not set."
+            exit 1
+          else
+            echo "Environment variable SENDGRID_API_KEY is set."
+          fi
